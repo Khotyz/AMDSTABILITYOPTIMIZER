@@ -88,12 +88,11 @@ function Get-LocalizedText {
 
     $lang = (Get-UICulture).Name
 
-    # Map system cultures to supported languages; fallback to English
     if (-not $script:Messages.ContainsKey($lang)) {
         if ($lang.StartsWith("pt")) { $lang = 'pt-BR' }
         elseif ($lang.StartsWith("es")) { $lang = 'es-ES' }
         elseif ($lang.StartsWith("zh")) { $lang = 'zh-CN' }
-        else { $lang = 'en-US' } # Default Fallback Language
+        else { $lang = 'en-US' }
     }
 
     return $script:Messages[$lang][$Key]
@@ -109,14 +108,11 @@ function Ensure-AdminPrivileges {
     if (-not $isAdministrator) {
         Write-Host (Get-LocalizedText -Key 'ReqAdmin') -ForegroundColor Yellow
         
-        # Replace the URL below with your raw GitHub repository link once uploaded
-        $scriptUrl = "https://raw.githubusercontent.com/YOUR-USERNAME/YOUR-REPOSITORY/main/Disable-ULPS.ps1"
+        $scriptUrl = "https://raw.githubusercontent.com/Khotyz/ULPSDISABLER/main/Disable-ULPS.ps1"
         
         if ($PSCommandPath) {
-            # Executed from a local script file
             Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
         } else {
-            # Executed via web download string (iex)
             Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"iwr -useb '$scriptUrl' | iex`"" -Verb RunAs
         }
         exit
@@ -127,7 +123,6 @@ function Ensure-AdminPrivileges {
 # 4. ULPS VERIFICATION MODULE
 # ==========================================
 function Get-ULPSStatus {
-    # Search for all 'EnableUlps' registry keys under the Display Adapter class path in HKLM
     $ulpsKeys = Get-ChildItem -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}" -Recurse -ErrorAction SilentlyContinue |
                 Get-ItemProperty -Name "EnableUlps" -ErrorAction SilentlyContinue
 
@@ -135,7 +130,6 @@ function Get-ULPSStatus {
         return @{ Found = $false; IsActive = $false; Keys = @() }
     }
 
-    # Check if at least one key has its value set to 1 (Active)
     $activeKeys = $ulpsKeys | Where-Object { $_.EnableUlps -eq 1 }
 
     return @{
@@ -158,7 +152,6 @@ function Disable-ULPS {
         try {
             Set-ItemProperty -Path $key.PSPath -Name "EnableUlps" -Value 0 -ErrorAction Stop
             
-            # Some driver installations also utilize EnableUlps_NA
             if (Get-ItemProperty -Path $key.PSPath -Name "EnableUlps_NA" -ErrorAction SilentlyContinue) {
                 Set-ItemProperty -Path $key.PSPath -Name "EnableUlps_NA" -Value 0 -ErrorAction Stop
             }
@@ -166,7 +159,6 @@ function Disable-ULPS {
             $successCount++
         }
         catch {
-            # Individual errors handled gracefully by returning result status
         }
     }
 
@@ -213,17 +205,14 @@ function Request-SystemReboot {
 # MAIN EXECUTION FLOW MODULE
 # ==========================================
 function Main {
-    # Ensure UTF-8 output encoding for proper character rendering (e.g., Chinese characters)
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-    # Ensure administrative privileges
     Ensure-AdminPrivileges
 
     Clear-Host
     Write-Host (Get-LocalizedText -Key 'Title') -ForegroundColor Cyan
     Write-Host ""
 
-    # Check ULPS status
     Write-Host (Get-LocalizedText -Key 'CheckingULPS') -ForegroundColor Yellow
     $ulpsState = Get-ULPSStatus
 
@@ -239,7 +228,6 @@ function Main {
         return
     }
 
-    # Prompt user for confirmation
     Write-Host (Get-LocalizedText -Key 'ULPSActive') -ForegroundColor Yellow
     $shouldDisable = Confirm-Choice -Message (Get-LocalizedText -Key 'AskDisable')
 
@@ -257,5 +245,4 @@ function Main {
     Read-Host (Get-LocalizedText -Key 'PressEnter')
 }
 
-# Execute script entry point
 Main
