@@ -205,7 +205,10 @@ function Request-SystemReboot {
 # MAIN EXECUTION FLOW MODULE
 # ==========================================
 function Main {
+    # Force UTF-8 Encoding for input, output, and console pipeline
+    [Console]::InputEncoding  = [System.Text.Encoding]::UTF8
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding           = [System.Text.Encoding]::UTF8
 
     Ensure-AdminPrivileges
 
