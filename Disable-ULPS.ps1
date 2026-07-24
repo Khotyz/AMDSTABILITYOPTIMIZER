@@ -1,246 +1,158 @@
 <#
 .SYNOPSIS
-    Modular PowerShell script to check and disable AMD ULPS (Ultra Low Power State).
+    Modern WPF Graphical Interface to check and disable AMD ULPS (Ultra Low Power State).
 .DESCRIPTION
-    Supports multiple languages (pt-BR, en-US, es-ES, zh-CN).
-    Requires Administrator privileges.
+    Launches a clean, dark-themed UI window. Auto-elevates to Admin if needed.
 #>
 
 # ==========================================
-# 1. LOCALIZATION DICTIONARY
+# 1. AUTO ADMIN ELEVATION
 # ==========================================
-$script:Messages = @{
-    'pt-BR' = @{
-        'Title'             = "==========================================`n      GERENCIADOR DE AMD ULPS            `n=========================================="
-        'ReqAdmin'          = "Requisitando permissoes de Administrador..."
-        'CheckingULPS'      = "Verificando o status do ULPS no sistema..."
-        'NotFound'          = "Nenhuma chave de registro do AMD ULPS foi encontrada neste sistema.`nIsso pode significar que voce nao possui uma GPU AMD compativel instalada."
-        'AlreadyDisabled'   = "O AMD ULPS ja esta DESATIVADO no sistema."
-        'ULPSActive'        = "O AMD ULPS esta atualmente ATIVO."
-        'AskDisable'        = "Deseja desativar o ULPS?"
-        'Disabling'         = "`nDesativando ULPS no Registro..."
-        'Success'           = "ULPS desativado com sucesso em {0} entrada(s) do registro!"
-        'Error'             = "Falha ao alterar as configuracoes do ULPS."
-        'AskReboot'         = "Deseja reiniciar o computador agora para aplicar as alteracoes?"
-        'Rebooting'         = "`nReiniciando o sistema em 5 segundos..."
-        'RebootLater'       = "`nLembre-se de reiniciar o computador mais tarde para que as alteracoes facam efeito."
-        'Canceled'          = "`nOperacao cancelada pelo usuario. O ULPS permanece ativo."
-        'PressEnter'        = "Pressione Enter para fechar esta janela..."
+$currentPrincipal = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+$isAdministrator = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $isAdministrator) {
+    $scriptUrl = "https://raw.githubusercontent.com/Khotyz/ULPSDISABLER/main/Disable-ULPS.ps1"
+    if ($PSCommandPath) {
+        Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    } else {
+        Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"iwr -useb '$scriptUrl' | iex`"" -Verb RunAs
     }
-    'en-US' = @{
-        'Title'             = "==========================================`n        AMD ULPS MANAGER                `n=========================================="
-        'ReqAdmin'          = "Requesting Administrator privileges..."
-        'CheckingULPS'      = "Checking ULPS status on the system..."
-        'NotFound'          = "No AMD ULPS registry keys were found on this system.`nThis may mean you do not have a compatible AMD GPU installed."
-        'AlreadyDisabled'   = "AMD ULPS is already DISABLED on the system."
-        'ULPSActive'        = "AMD ULPS is currently ACTIVE."
-        'AskDisable'        = "Do you want to disable ULPS?"
-        'Disabling'         = "`nDisabling ULPS in Registry..."
-        'Success'           = "ULPS successfully disabled in {0} registry entry/entries!"
-        'Error'             = "Failed to modify ULPS settings."
-        'AskReboot'         = "Do you want to restart the computer now to apply changes?"
-        'Rebooting'         = "`nRestarting system in 5 seconds..."
-        'RebootLater'       = "`nRemember to restart your computer later for changes to take effect."
-        'Canceled'          = "`nOperation canceled by user. ULPS remains active."
-        'PressEnter'        = "Press Enter to close this window..."
-    }
-    'es-ES' = @{
-        'Title'             = "==========================================`n      GESTOR DE AMD ULPS                 `n=========================================="
-        'ReqAdmin'          = "Solicitando permisos de Administrador..."
-        'CheckingULPS'      = "Verificando el estado de ULPS en el sistema..."
-        'NotFound'          = "No se encontraron claves de registro de AMD ULPS en este sistema.`nEsto puede significar que no tiene una GPU AMD compatible instalada."
-        'AlreadyDisabled'   = "AMD ULPS ya esta DESACTIVADO en el sistema."
-        'ULPSActive'        = "AMD ULPS esta actualmente ACTIVO."
-        'AskDisable'        = "Desea desactivar ULPS?"
-        'Disabling'         = "`nDesactivando ULPS en el Registro..."
-        'Success'           = "ULPS desactivado con exito en {0} entrada(s) del registro!"
-        'Error'             = "Error al modificar la configuracion de ULPS."
-        'AskReboot'         = "Desea reiniciar el equipo ahora para aplicar los cambios?"
-        'Rebooting'         = "`nReiniciando el sistema en 5 segundos..."
-        'RebootLater'       = "`nRecuerde reiniciar su equipo mas tarde para que los cambios surtan efecto."
-        'Canceled'          = "`nOperacion cancelada por el usuario. ULPS permanece activo."
-        'PressEnter'        = "Presione Enter para cerrar esta ventana..."
-    }
-    'zh-CN' = @{
-        'Title'             = "==========================================`n        AMD ULPS 管理器                 `n=========================================="
-        'ReqAdmin'          = "正在请求管理员权限..."
-        'CheckingULPS'      = "正在检查系统中的 ULPS 状态..."
-        'NotFound'          = "未在此系统中找到 AMD ULPS 注册表项。`n这可能意味着您未安装兼容的 AMD 显卡。"
-        'AlreadyDisabled'   = "系统中的 AMD ULPS 已经处于禁用状态。"
-        'ULPSActive'        = "AMD ULPS 当前处于启用状态。"
-        'AskDisable'        = "是否要禁用 ULPS？"
-        'Disabling'         = "`n正在注册表中禁用 ULPS..."
-        'Success'           = "已成功在 {0} 个注册表项中禁用 ULPS！"
-        'Error'             = "修改 ULPS 设置失败。"
-        'AskReboot'         = "是否立即重启计算机以应用更改？"
-        'Rebooting'         = "`n系统将在 5 秒内重启..."
-        'RebootLater'       = "`n请记得稍后重启计算机以使更改生效。"
-        'Canceled'          = "`n用户已取消操作。ULPS 仍保持启用状态。"
-        'PressEnter'        = "按 Enter 键关闭此窗口..."
-    }
+    exit
+}
+
+# Load Assemblies for WPF GUI
+Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
+
+# ==========================================
+# 2. XAML INTERFACE DESIGN
+# ==========================================
+[xml]$xaml = @"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AMD ULPS Manager" Height="360" Width="480"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Background="#0F172A" Foreground="#F8FAFC" FontFamily="Segoe UI">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="AMD ULPS DISABLER" FontSize="20" FontWeight="Bold" Foreground="#38BDF8"/>
+            <TextBlock Text="Manage Ultra Low Power State for AMD Graphics" FontSize="12" Foreground="#94A3B8" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- Status Card -->
+        <Border Grid.Row="1" Background="#1E293B" CornerRadius="12" Padding="20" VerticalAlignment="Center">
+            <StackPanel Name="StatusPanel">
+                <TextBlock Text="SYSTEM STATUS" FontSize="11" FontWeight="Bold" Foreground="#64748B" Margin="0,0,0,8"/>
+                <TextBlock Name="TxtStatus" Text="Checking ULPS Status..." FontSize="16" FontWeight="SemiBold" Foreground="#FACC15"/>
+                <TextBlock Name="TxtDetail" Text="Scanning Windows Registry for active AMD display adapters..." FontSize="12" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,6,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Name="BtnAction" Content="Disable ULPS" Width="130" Height="38" Margin="0,0,10,0"
+                    Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="13" BorderThickness="0" Cursor="Hand" IsEnabled="False">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="8"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+            
+            <Button Name="BtnClose" Content="Close" Width="90" Height="38"
+                    Background="#334155" Foreground="White" FontWeight="SemiBold" FontSize="13" BorderThickness="0" Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="8"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>
+"@
+
+# Render XAML Window
+$reader = (New-Object System.Xml.XmlNodeReader $xaml)
+$Window = [Windows.Markup.XamlReader]::Load($reader)
+
+# Element References
+$TxtStatus = $Window.FindName("TxtStatus")
+$TxtDetail = $Window.FindName("TxtDetail")
+$BtnAction = $Window.FindName("BtnAction")
+$BtnClose  = $Window.FindName("BtnClose")
+
+# ==========================================
+# 3. ULPS DETECTION LOGIC
+# ==========================================
+function Get-ULPSKeys {
+    Get-ChildItem -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}" -Recurse -ErrorAction SilentlyContinue |
+    Get-ItemProperty -Name "EnableUlps" -ErrorAction SilentlyContinue
+}
+
+$script:ulpsKeys = Get-ULPSKeys
+$script:activeKeys = $script:ulpsKeys | Where-Object { $_.EnableUlps -eq 1 }
+
+if (-not $script:ulpsKeys) {
+    $TxtStatus.Text = "No AMD GPU Found"
+    $TxtStatus.Foreground = "#EF4444"
+    $TxtDetail.Text = "No AMD ULPS registry keys were detected on this computer."
+} elseif ($script:activeKeys.Count -eq 0) {
+    $TxtStatus.Text = "ULPS is Disabled"
+    $TxtStatus.Foreground = "#22C55E"
+    $TxtDetail.Text = "AMD Ultra Low Power State is already inactive on your system."
+} else {
+    $TxtStatus.Text = "ULPS is Active"
+    $TxtStatus.Foreground = "#FACC15"
+    $TxtDetail.Text = "Found $($script:activeKeys.Count) active registry entry/entries. Disabling it can improve system stability."
+    $BtnAction.IsEnabled = $true
 }
 
 # ==========================================
-# 2. LANGUAGE DETECTION MODULE
+# 4. BUTTON EVENTS & ACTIONS
 # ==========================================
-function Get-LocalizedText {
-    param ([string]$Key)
-
-    $lang = (Get-UICulture).Name
-
-    if (-not $script:Messages.ContainsKey($lang)) {
-        if ($lang.StartsWith("pt")) { $lang = 'pt-BR' }
-        elseif ($lang.StartsWith("es")) { $lang = 'es-ES' }
-        elseif ($lang.StartsWith("zh")) { $lang = 'zh-CN' }
-        else { $lang = 'en-US' }
-    }
-
-    return $script:Messages[$lang][$Key]
-}
-
-# ==========================================
-# 3. PRIVILEGE ELEVATION MODULE
-# ==========================================
-function Ensure-AdminPrivileges {
-    $currentPrincipal = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
-    $isAdministrator = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-
-    if (-not $isAdministrator) {
-        Write-Host (Get-LocalizedText -Key 'ReqAdmin') -ForegroundColor Yellow
-        
-        $scriptUrl = "https://raw.githubusercontent.com/Khotyz/ULPSDISABLER/main/Disable-ULPS.ps1"
-        
-        if ($PSCommandPath) {
-            Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
-        } else {
-            Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"iwr -useb '$scriptUrl' | iex`"" -Verb RunAs
-        }
-        exit
-    }
-}
-
-# ==========================================
-# 4. ULPS VERIFICATION MODULE
-# ==========================================
-function Get-ULPSStatus {
-    $ulpsKeys = Get-ChildItem -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}" -Recurse -ErrorAction SilentlyContinue |
-                Get-ItemProperty -Name "EnableUlps" -ErrorAction SilentlyContinue
-
-    if (-not $ulpsKeys) {
-        return @{ Found = $false; IsActive = $false; Keys = @() }
-    }
-
-    $activeKeys = $ulpsKeys | Where-Object { $_.EnableUlps -eq 1 }
-
-    return @{
-        Found    = $true
-        IsActive = ($activeKeys.Count -gt 0)
-        Keys     = $ulpsKeys
-    }
-}
-
-# ==========================================
-# 5. ULPS DISABLE MODULE
-# ==========================================
-function Disable-ULPS {
-    param ([array]$Keys)
-
-    Write-Host (Get-LocalizedText -Key 'Disabling') -ForegroundColor Cyan
-    $successCount = 0
-
-    foreach ($key in $Keys) {
+$BtnAction.Add_Click({
+    $success = 0
+    foreach ($key in $script:ulpsKeys) {
         try {
             Set-ItemProperty -Path $key.PSPath -Name "EnableUlps" -Value 0 -ErrorAction Stop
-            
             if (Get-ItemProperty -Path $key.PSPath -Name "EnableUlps_NA" -ErrorAction SilentlyContinue) {
                 Set-ItemProperty -Path $key.PSPath -Name "EnableUlps_NA" -Value 0 -ErrorAction Stop
             }
-
-            $successCount++
-        }
-        catch {
-        }
+            $success++
+        } catch {}
     }
 
-    if ($successCount -gt 0) {
-        $msg = (Get-LocalizedText -Key 'Success') -f $successCount
-        Write-Host $msg -ForegroundColor Green
-        return $true
+    if ($success -gt 0) {
+        $TxtStatus.Text = "ULPS Disabled Successfully!"
+        $TxtStatus.Foreground = "#22C55E"
+        $TxtDetail.Text = "Registry entries updated. Would you like to restart your PC now?"
+        $BtnAction.Content = "Restart PC"
+        $BtnAction.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#DC2626")
+        
+        # Switch button functionality to restart system
+        $BtnAction.Remove_Click($_)
+        $BtnAction.Add_Click({
+            Restart-Computer -Force
+        })
     } else {
-        Write-Host (Get-LocalizedText -Key 'Error') -ForegroundColor Red
-        return $false
+        $TxtStatus.Text = "Failed to Disable"
+        $TxtStatus.Foreground = "#EF4444"
+        $TxtDetail.Text = "Could not modify registry keys."
+        $BtnAction.IsEnabled = $false
     }
-}
+})
 
-# ==========================================
-# 6. USER CONFIRMATION MODULE
-# ==========================================
-function Confirm-Choice {
-    param ([string]$Message)
+$BtnClose.Add_Click({
+    $Window.Close()
+})
 
-    do {
-        $response = Read-Host -Prompt "$Message [Y/N or S/N]"
-        $cleanResponse = $response.Trim().ToUpper()
-    } while ($cleanResponse -ne 'S' -and $cleanResponse -ne 'N' -and $cleanResponse -ne 'Y')
-
-    return ($cleanResponse -eq 'S' -or $cleanResponse -eq 'Y')
-}
-
-# ==========================================
-# 7. SYSTEM REBOOT MODULE
-# ==========================================
-function Request-SystemReboot {
-    $reboot = Confirm-Choice -Message (Get-LocalizedText -Key 'AskReboot')
-    
-    if ($reboot) {
-        Write-Host (Get-LocalizedText -Key 'Rebooting') -ForegroundColor Yellow
-        Start-Sleep -Seconds 5
-        Restart-Computer -Force
-    } else {
-        Write-Host (Get-LocalizedText -Key 'RebootLater') -ForegroundColor Cyan
-    }
-}
-
-# ==========================================
-# MAIN EXECUTION FLOW MODULE
-# ==========================================
-function Main {
-    Ensure-AdminPrivileges
-
-    Clear-Host
-    Write-Host (Get-LocalizedText -Key 'Title') -ForegroundColor Cyan
-    Write-Host ""
-
-    Write-Host (Get-LocalizedText -Key 'CheckingULPS') -ForegroundColor Yellow
-    $ulpsState = Get-ULPSStatus
-
-    if (-not $ulpsState.Found) {
-        Write-Host (Get-LocalizedText -Key 'NotFound') -ForegroundColor Red
-        Read-Host "`n$(Get-LocalizedText -Key 'PressEnter')"
-        return
-    }
-
-    if (-not $ulpsState.IsActive) {
-        Write-Host (Get-LocalizedText -Key 'AlreadyDisabled') -ForegroundColor Green
-        Read-Host "`n$(Get-LocalizedText -Key 'PressEnter')"
-        return
-    }
-
-    Write-Host (Get-LocalizedText -Key 'ULPSActive') -ForegroundColor Yellow
-    $shouldDisable = Confirm-Choice -Message (Get-LocalizedText -Key 'AskDisable')
-
-    if ($shouldDisable) {
-        $result = Disable-ULPS -Keys $ulpsState.Keys
-        if ($result) {
-            Write-Host ""
-            Request-SystemReboot
-        }
-    } else {
-        Write-Host (Get-LocalizedText -Key 'Canceled') -ForegroundColor Yellow
-    }
-
-    Write-Host ""
-    Read-Host (Get-LocalizedText -Key 'PressEnter')
-}
-
-Main
+# Show UI Window
+$Window.ShowDialog() | Out-Null
