@@ -241,8 +241,37 @@ $BtnAction    = $Window.FindName("BtnAction")
 $BtnClose     = $Window.FindName("BtnClose")
 $CmbLanguage  = $Window.FindName("CmbLanguage")
 
-# Ensure English is selected by default, regardless of XAML rendering order
-$CmbLanguage.SelectedIndex = 0
+# ==========================================
+# 3b. AUTOMATIC LANGUAGE DETECTION
+#     Detects the Windows display language (UI culture) and pre-selects
+#     the matching entry in the combo box. Falls back to English whenever
+#     the detected language isn't one of the four supported locales, or
+#     detection fails for any reason. The user can still change it manually.
+# ==========================================
+function Get-PreferredLanguageTag {
+    try {
+        $uiCulture = [System.Globalization.CultureInfo]::CurrentUICulture.Name  # e.g. "pt-BR", "es-MX", "zh-Hans-CN"
+    } catch {
+        $uiCulture = "en-US"
+    }
+
+    switch -Wildcard ($uiCulture) {
+        "pt*" { return "pt-BR" }   # pt-BR, pt-PT, etc.
+        "es*" { return "es-ES" }   # es-ES, es-MX, es-AR, etc.
+        "zh*" { return "zh-CN" }   # zh-CN, zh-Hans, zh-TW, zh-Hant, etc.
+        default { return "en-US" }
+    }
+}
+
+$script:detectedLangTag = Get-PreferredLanguageTag
+
+$itemToSelect = $CmbLanguage.Items | Where-Object { $_.Tag -eq $script:detectedLangTag } | Select-Object -First 1
+if ($itemToSelect) {
+    $CmbLanguage.SelectedItem = $itemToSelect
+} else {
+    # Safety net: language not supported or detection failed -> default to English
+    $CmbLanguage.SelectedIndex = 0
+}
 
 $script:isFinished = $false
 
