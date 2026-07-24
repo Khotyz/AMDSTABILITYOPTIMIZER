@@ -2,9 +2,12 @@
 .SYNOPSIS
     Modern WPF Graphical Interface to check and disable AMD ULPS (Ultra Low Power State).
 .DESCRIPTION
-    Launches a clean, dark-themed UI window with manual language selection.
+    Launches a clean, dark-themed UI window with manual language selection and UTF-8 encoding support.
     Auto-elevates to Admin if needed.
 #>
+
+# Força codificação UTF-8 na sessão do PowerShell
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # ==========================================
 # 1. AUTO ADMIN ELEVATION
@@ -17,7 +20,7 @@ if (-not $isAdministrator) {
     if ($PSCommandPath) {
         Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
     } else {
-        Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"iwr -useb '$scriptUrl' | iex`"" -Verb RunAs
+        Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; iwr -useb '$scriptUrl' | iex`"" -Verb RunAs
     }
     exit
 }
@@ -26,27 +29,9 @@ if (-not $isAdministrator) {
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 # ==========================================
-# 2. LOCALIZATION DICTIONARY
+# 2. LOCALIZATION DICTIONARY (UTF-8 Safe)
 # ==========================================
 $script:Messages = @{
-    'pt-BR' = @{
-        'Title'         = "AMD ULPS DISABLER"
-        'Subtitle'      = "Gerencie o Ultra Low Power State para GPUs AMD"
-        'SysStatus'     = "STATUS DO SISTEMA"
-        'NoGpu'         = "Nenhuma GPU AMD Encontrada"
-        'NoGpuDetail'   = "Nenhuma chave de registro do AMD ULPS foi detectada neste computador."
-        'Disabled'      = "ULPS está Desativado"
-        'DisabledDetail'= "O AMD Ultra Low Power State já está inativo no seu sistema."
-        'Active'        = "ULPS está Ativo"
-        'ActiveDetail'  = "Encontrada(s) {0} entrada(s) de registro ativa(s). Desativar pode melhorar a estabilidade."
-        'BtnDisable'    = "Desativar ULPS"
-        'BtnClose'      = "Fechar"
-        'Success'       = "ULPS Desativado com Sucesso!"
-        'SuccessDetail' = "Chaves de registro atualizadas. Deseja reiniciar o PC agora?"
-        'BtnRestart'    = "Reiniciar PC"
-        'Error'         = "Falha ao Desativar"
-        'ErrorDetail'   = "Não foi possível modificar as chaves do registro."
-    }
     'en-US' = @{
         'Title'         = "AMD ULPS DISABLER"
         'Subtitle'      = "Manage Ultra Low Power State for AMD Graphics"
@@ -65,41 +50,59 @@ $script:Messages = @{
         'Error'         = "Failed to Disable"
         'ErrorDetail'   = "Could not modify registry keys."
     }
+    'pt-BR' = @{
+        'Title'         = "AMD ULPS DISABLER"
+        'Subtitle'      = "Gerencie o Ultra Low Power State para GPUs AMD"
+        'SysStatus'     = "STATUS DO SISTEMA"
+        'NoGpu'         = "Nenhuma GPU AMD Encontrada"
+        'NoGpuDetail'   = "Nenhuma chave de registro do AMD ULPS foi detectada neste computador."
+        'Disabled'      = "ULPS est" + [char]0x00E1 + " Desativado"
+        'DisabledDetail'= "O AMD Ultra Low Power State j" + [char]0x00E1 + " est" + [char]0x00E1 + " inativo no seu sistema."
+        'Active'        = "ULPS est" + [char]0x00E1 + " Ativo"
+        'ActiveDetail'  = "Encontrada(s) {0} entrada(s) de registro ativa(s). Desativar pode melhorar a estabilidade."
+        'BtnDisable'    = "Desativar ULPS"
+        'BtnClose'      = "Fechar"
+        'Success'       = "ULPS Desativado com Sucesso!"
+        'SuccessDetail' = "Chaves de registro atualizadas. Deseja reiniciar o PC agora?"
+        'BtnRestart'    = "Reiniciar PC"
+        'Error'         = "Falha ao Desativar"
+        'ErrorDetail'   = "N" + [char]0x00E3 + "o foi poss" + [char]0x00ED + "vel modificar as chaves do registro."
+    }
     'es-ES' = @{
         'Title'         = "GESTOR AMD ULPS"
-        'Subtitle'      = "Gestione Ultra Low Power State para gráficas AMD"
+        'Subtitle'      = "Gestione Ultra Low Power State para gr" + [char]0x00E1 + "ficas AMD"
         'SysStatus'     = "ESTADO DEL SISTEMA"
         'NoGpu'         = "GPU AMD No Encontrada"
         'NoGpuDetail'   = "No se encontraron claves de registro de AMD ULPS en este equipo."
-        'Disabled'      = "ULPS está Desactivado"
-        'DisabledDetail'= "AMD Ultra Low Power State ya está inactivo en su sistema."
-        'Active'        = "ULPS está Activo"
-        'ActiveDetail'  = "Se encontró/aron {0} entrada(s) activa(s). Desactivarlo puede mejorar la estabilidad."
+        'Disabled'      = "ULPS est" + [char]0x00E1 + " Desactivado"
+        'DisabledDetail'= "AMD Ultra Low Power State ya est" + [char]0x00E1 + " inactivo en su sistema."
+        'Active'        = "ULPS est" + [char]0x00E1 + " Activo"
+        'ActiveDetail'  = "Se encontr" + [char]0x00F3 + "/aron {0} entrada(s) activa(s). Desactivarlo puede mejorar la estabilidad."
         'BtnDisable'    = "Desactivar ULPS"
         'BtnClose'      = "Cerrar"
-        'Success'       = "¡ULPS Desactivado con Éxito!"
-        'SuccessDetail' = "Registro actualizado. ¿Desea reiniciar el equipo ahora?"
+        'Success'       = [char]0x00A1 + "ULPS Desactivado con " + [char]0x00C9 + "xito!"
+        'SuccessDetail' = [char]0x00BF + "Desea reiniciar el equipo ahora?"
         'BtnRestart'    = "Reiniciar PC"
         'Error'         = "Error al Desactivar"
         'ErrorDetail'   = "No se pudieron modificar las claves del registro."
     }
     'zh-CN' = @{
-        'Title'         = "AMD ULPS 管理器"
-        'Subtitle'      = "管理 AMD 显卡的 Ultra Low Power State"
-        'SysStatus'     = "系统状态"
-        'NoGpu'         = "未找到 AMD 显卡"
-        'NoGpuDetail'   = "在此计算机上未检测到 AMD ULPS 注册表项。"
-        'Disabled'      = "ULPS 已禁用"
-        'DisabledDetail'= "AMD Ultra Low Power State 在您的系统中已处于非活动状态。"
-        'Active'        = "ULPS 当前处于启用状态"
-        'ActiveDetail'  = "找到 {0} 个活动注册表项。禁用它可以提高系统稳定性。"
-        'BtnDisable'    = "禁用 ULPS"
-        'BtnClose'      = "关闭"
-        'Success'       = "已成功禁用 ULPS！"
-        'SuccessDetail' = "注册表项已更新。您想立即重启计算机吗？"
-        'BtnRestart'    = "重启 PC"
-        'Error'         = "禁用失败"
-        'ErrorDetail'   = "无法修改注册表项。"
+        'Title'         = "AMD ULPS " + [char]0x7B01 + [char]0x7406 + [char]0x5668
+        'Subtitle'      = [char]0x7B01 + [char]0x7406 + " AMD " + [char]0x3010 + [char]0x5361 + " Ultra Low Power State"
+        'SysStatus'     = [char]0x7CFB + [char]0x719F + [char]0x72B6 + [char]0x6001
+        'NoGpu'         = [char]0x672A + [char]0x727F + [char]0x5230 + " AMD " + [char]0x3010 + [char]0x5361
+        'NoGpuDetail'   = [char]0x5728 + [char]0x6B64 + [char]0x8BA1 + [char]0x7B97 + [char]0x673A + [char]0x4E0A + [char]0x672A + [char]0x68C0 + [char]0x6D4B + [char]0x5230 + " AMD ULPS " + [char]0x6CE8 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x3002
+        'Disabled'      = "ULPS " + [char]0x5DF2 + [char]0x7981 + [char]0x7528
+        'DisabledDetail'= "AMD Ultra Low Power State " + [char]0x5728 + [char]0x60A8 + [char]0x7684 + [char]0x7CFB + [char]0x719F + [char]0x4E2D + [char]0x5DF2 + [char]0x5904 + [char]0x4E8E + [char]0x975E + [char]0x603B + [char]0x52A8 + [char]0x72B6 + [char]0x6001 + [char]0x3002
+        'Active'        = "ULPS " + [char]0x5F53 + [char]0x540D + [char]0x5904 + [char]0x4E8E + [char]0x542F + [char]0x7528 + [char]0x72B6 + [char]0x6001
+        'ActiveDetail'  = [char]0x627E + [char]0x5230 + " {0} " + [char]0x4E2A + [char]0x6D3B + [char]0x52A8 + [char]0x注 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x3002
+        'BtnDisable'    = [char]0x7981 + [char]0x7528 + " ULPS"
+        'BtnClose'      = [char]0x5173 + [char]0x95ED
+        'Success'       = [char]0x5DF2 + [char]0x6210 + [char]0x529F + [char]0x7981 + [char]0x7528 + " ULPS!"
+        'SuccessDetail' = [char]0x注 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x5DF2 + [char]0x66F4 + [char]0x65B0 + [char]0x3002 + [char]0x60A8 + [char]0x003F
+        'BtnRestart'    = [char]0x90CD + [char]0x542F + " PC"
+        'Error'         = [char]0x7981 + [char]0x7528 + [char]0x5931 + [char]0x8225
+        'ErrorDetail'   = [char]0x65E0 + [char]0x63D0 + [char]0x4FEE + [char]0x6539 + [char]0x注 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x3002
     }
 }
 
@@ -128,13 +131,13 @@ $script:Messages = @{
 
             <StackPanel Grid.Column="0">
                 <TextBlock Name="TxtTitle" Text="AMD ULPS DISABLER" FontSize="20" FontWeight="Bold" Foreground="#38BDF8"/>
-                <TextBlock Name="TxtSubtitle" Text="Gerencie o Ultra Low Power State para GPUs AMD" FontSize="12" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                <TextBlock Name="TxtSubtitle" Text="Manage Ultra Low Power State for AMD Graphics" FontSize="12" Foreground="#94A3B8" Margin="0,4,0,0"/>
             </StackPanel>
 
-            <ComboBox Name="CmbLanguage" Grid.Column="1" Width="100" Height="28" VerticalAlignment="Top"
+            <ComboBox Name="CmbLanguage" Grid.Column="1" Width="110" Height="28" VerticalAlignment="Top"
                       Background="#1E293B" Foreground="#F8FAFC" BorderBrush="#334155" FontSize="12">
-                <ComboBoxItem Content="Português" Tag="pt-BR" IsSelected="True"/>
-                <ComboBoxItem Content="English" Tag="en-US"/>
+                <ComboBoxItem Content="English" Tag="en-US" IsSelected="True"/>
+                <ComboBoxItem Content="Português" Tag="pt-BR"/>
                 <ComboBoxItem Content="Español" Tag="es-ES"/>
                 <ComboBoxItem Content="中文" Tag="zh-CN"/>
             </ComboBox>
@@ -143,7 +146,7 @@ $script:Messages = @{
         <!-- Status Card -->
         <Border Grid.Row="1" Background="#1E293B" CornerRadius="12" Padding="20" VerticalAlignment="Center">
             <StackPanel Name="StatusPanel">
-                <TextBlock Name="TxtSysStatus" Text="STATUS DO SISTEMA" FontSize="11" FontWeight="Bold" Foreground="#64748B" Margin="0,0,0,8"/>
+                <TextBlock Name="TxtSysStatus" Text="SYSTEM STATUS" FontSize="11" FontWeight="Bold" Foreground="#64748B" Margin="0,0,0,8"/>
                 <TextBlock Name="TxtStatus" Text="..." FontSize="16" FontWeight="SemiBold" Foreground="#FACC15"/>
                 <TextBlock Name="TxtDetail" Text="..." FontSize="12" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,6,0,0"/>
             </StackPanel>
@@ -151,7 +154,7 @@ $script:Messages = @{
 
         <!-- Action Buttons -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Name="BtnAction" Content="Desativar ULPS" Width="140" Height="38" Margin="0,0,10,0"
+            <Button Name="BtnAction" Content="Disable ULPS" Width="140" Height="38" Margin="0,0,10,0"
                     Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="13" BorderThickness="0" Cursor="Hand" IsEnabled="False">
                 <Button.Resources>
                     <Style TargetType="Border">
@@ -160,7 +163,7 @@ $script:Messages = @{
                 </Button.Resources>
             </Button>
             
-            <Button Name="BtnClose" Content="Fechar" Width="90" Height="38"
+            <Button Name="BtnClose" Content="Close" Width="90" Height="38"
                     Background="#334155" Foreground="White" FontWeight="SemiBold" FontSize="13" BorderThickness="0" Cursor="Hand">
                 <Button.Resources>
                     <Style TargetType="Border">
@@ -173,9 +176,10 @@ $script:Messages = @{
 </Window>
 "@
 
-# Render XAML Window
-$reader = (New-Object System.Xml.XmlNodeReader $xaml)
-$Window = [Windows.Markup.XamlReader]::Load($reader)
+# Render XAML Window using UTF-8 Stream Reader
+$bytes = [System.Text.Encoding]::UTF8.GetBytes($xaml.OuterXml)
+$stream = New-Object System.IO.MemoryStream(,$bytes)
+$Window = [Windows.Markup.XamlReader]::Load($stream)
 
 # Element References
 $TxtTitle     = $Window.FindName("TxtTitle")
@@ -187,7 +191,6 @@ $BtnAction    = $Window.FindName("BtnAction")
 $BtnClose     = $Window.FindName("BtnClose")
 $CmbLanguage  = $Window.FindName("CmbLanguage")
 
-# Global script variables for status track
 $script:isFinished = $false
 
 # ==========================================
