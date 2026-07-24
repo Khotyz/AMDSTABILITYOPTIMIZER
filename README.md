@@ -1,4 +1,4 @@
-```markdown
+
 # ULPSDISABLER
 
 A lightweight, fully modular PowerShell utility designed to detect and disable AMD **ULPS** (*Ultra Low Power State*). ULPS is an AMD driver power-saving feature that can frequently cause system stutters, black screens, long boot times, or secondary GPU responsiveness issues.
@@ -22,7 +22,7 @@ Open **PowerShell** and run:
 ```powershell
 iwr -useb "[https://raw.githubusercontent.com/Khotyz/ULPSDISABLER/main/Disable-ULPS.ps1](https://raw.githubusercontent.com/Khotyz/ULPSDISABLER/main/Disable-ULPS.ps1)" | iex
 
-```
+
 
 ---
 
@@ -37,7 +37,5 @@ iwr -useb "[https://raw.githubusercontent.com/Khotyz/ULPSDISABLER/main/Disable-U
 ## 📄 License
 
 Distributed under the **MIT License**. See `LICENSE` for more information.
-
-```
 
 ```
