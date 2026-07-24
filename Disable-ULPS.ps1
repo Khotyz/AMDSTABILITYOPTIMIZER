@@ -172,6 +172,53 @@ $script:LangNameZH = [char]0x4E2D + [char]0x6587
                         </Style.Triggers>
                     </Style>
                 </ComboBox.Resources>
+                <!-- Full custom template: the default Windows theme renders the closed
+                     box's selected-language text with its own hard-coded brush and can
+                     wash it out. This template forces our own colors for that text,
+                     for the open/hover states, and removes the built-in disabled-dimming
+                     overlay so nothing here depends on the system theme. -->
+                <ComboBox.Template>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Name="ToggleBtn" Focusable="False" ClickMode="Press"
+                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Name="ToggleBorder" Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition/>
+                                                    <ColumnDefinition Width="20"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Path Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      Data="M 0 0 L 6 0 L 3 5 Z" Fill="#94A3B8"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ToggleBorder" Property="Background" Value="#273449"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter Name="ContentSite" IsHitTestVisible="False"
+                                               Content="{TemplateBinding SelectionBoxItem}"
+                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                               Margin="10,0,25,0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                               TextElement.Foreground="#F8FAFC" TextElement.FontWeight="SemiBold"/>
+                            <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="6"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="200">
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </ComboBox.Template>
                 <ComboBoxItem Content="$LangNameEN" Tag="en-US" IsSelected="True"/>
                 <ComboBoxItem Content="$LangNamePT" Tag="pt-BR"/>
                 <ComboBoxItem Content="$LangNameES" Tag="es-ES"/>
@@ -192,34 +239,59 @@ $script:LangNameZH = [char]0x4E2D + [char]0x6587
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
             <Button Name="BtnAction" Content="Disable ULPS" Width="140" Height="38" Margin="0,0,10,0"
                     Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="13" BorderThickness="0" Cursor="Hand" IsEnabled="False">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="8"/>
-                    </Style>
-                </Button.Resources>
-                <Button.Style>
-                    <!-- Overrides WPF's default washed-out disabled-button text color,
-                         which is nearly unreadable on the blue background. -->
-                    <Style TargetType="Button">
-                        <Setter Property="Opacity" Value="1"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Background" Value="#1E293B"/>
-                                <Setter Property="Foreground" Value="#94A3B8"/>
-                                <Setter Property="BorderBrush" Value="#334155"/>
+                <!-- Full custom template: the default Windows theme applies its own
+                     opacity/dimming overlay on IsEnabled=False that overrides any
+                     Foreground we set via a Style trigger, making the text nearly
+                     invisible. This template removes that overlay entirely and sets
+                     an explicit, readable text color for every state ourselves. -->
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="Bg" Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter Name="Content" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               TextElement.Foreground="{TemplateBinding Foreground}"
+                                               TextElement.FontWeight="{TemplateBinding FontWeight}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Opacity" Value="0.9"/>
                             </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bg" Property="Opacity" Value="0.75"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bg" Property="Background" Value="#1E293B"/>
+                                <Setter TargetName="Bg" Property="Opacity" Value="1"/>
+                                <Setter TargetName="Content" Property="TextElement.Foreground" Value="#CBD5E1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
             </Button>
-            
+
             <Button Name="BtnClose" Content="Close" Width="90" Height="38"
                     Background="#334155" Foreground="White" FontWeight="SemiBold" FontSize="13" BorderThickness="0" Cursor="Hand">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="8"/>
-                    </Style>
-                </Button.Resources>
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="Bg" Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter Name="Content" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               TextElement.Foreground="{TemplateBinding Foreground}"
+                                               TextElement.FontWeight="{TemplateBinding FontWeight}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bg" Property="Opacity" Value="0.75"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bg" Property="Background" Value="#1E293B"/>
+                                <Setter TargetName="Bg" Property="Opacity" Value="1"/>
+                                <Setter TargetName="Content" Property="TextElement.Foreground" Value="#CBD5E1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
             </Button>
         </StackPanel>
     </Grid>
