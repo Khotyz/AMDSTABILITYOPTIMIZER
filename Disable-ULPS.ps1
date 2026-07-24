@@ -6,7 +6,7 @@
     Auto-elevates to Admin if needed.
 #>
 
-# Força codificação UTF-8 na sessão do PowerShell
+# Force UTF-8 encoding for the PowerShell console session
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # ==========================================
@@ -29,7 +29,10 @@ if (-not $isAdministrator) {
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 # ==========================================
-# 2. LOCALIZATION DICTIONARY (UTF-8 Safe)
+# 2. LOCALIZATION DICTIONARY (encoding-safe: every non-ASCII
+#    character is built from its Unicode code point via [char],
+#    so the visible text never depends on how this .ps1 file
+#    itself is saved/read/encoded)
 # ==========================================
 $script:Messages = @{
     'en-US' = @{
@@ -87,24 +90,35 @@ $script:Messages = @{
         'ErrorDetail'   = "No se pudieron modificar las claves del registro."
     }
     'zh-CN' = @{
-        'Title'         = "AMD ULPS " + [char]0x7B01 + [char]0x7406 + [char]0x5668
-        'Subtitle'      = [char]0x7B01 + [char]0x7406 + " AMD " + [char]0x3010 + [char]0x5361 + " Ultra Low Power State"
-        'SysStatus'     = [char]0x7CFB + [char]0x719F + [char]0x72B6 + [char]0x6001
-        'NoGpu'         = [char]0x672A + [char]0x727F + [char]0x5230 + " AMD " + [char]0x3010 + [char]0x5361
-        'NoGpuDetail'   = [char]0x5728 + [char]0x6B64 + [char]0x8BA1 + [char]0x7B97 + [char]0x673A + [char]0x4E0A + [char]0x672A + [char]0x68C0 + [char]0x6D4B + [char]0x5230 + " AMD ULPS " + [char]0x6CE8 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x3002
-        'Disabled'      = "ULPS " + [char]0x5DF2 + [char]0x7981 + [char]0x7528
-        'DisabledDetail'= "AMD Ultra Low Power State " + [char]0x5728 + [char]0x60A8 + [char]0x7684 + [char]0x7CFB + [char]0x719F + [char]0x4E2D + [char]0x5DF2 + [char]0x5904 + [char]0x4E8E + [char]0x975E + [char]0x603B + [char]0x52A8 + [char]0x72B6 + [char]0x6001 + [char]0x3002
-        'Active'        = "ULPS " + [char]0x5F53 + [char]0x540D + [char]0x5904 + [char]0x4E8E + [char]0x542F + [char]0x7528 + [char]0x72B6 + [char]0x6001
-        'ActiveDetail'  = [char]0x627E + [char]0x5230 + " {0} " + [char]0x4E2A + [char]0x6D3B + [char]0x52A8 + [char]0x注 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x3002
-        'BtnDisable'    = [char]0x7981 + [char]0x7528 + " ULPS"
-        'BtnClose'      = [char]0x5173 + [char]0x95ED
-        'Success'       = [char]0x5DF2 + [char]0x6210 + [char]0x529F + [char]0x7981 + [char]0x7528 + " ULPS!"
-        'SuccessDetail' = [char]0x注 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x5DF2 + [char]0x66F4 + [char]0x65B0 + [char]0x3002 + [char]0x60A8 + [char]0x003F
-        'BtnRestart'    = [char]0x90CD + [char]0x542F + " PC"
-        'Error'         = [char]0x7981 + [char]0x7528 + [char]0x5931 + [char]0x8225
-        'ErrorDetail'   = [char]0x65E0 + [char]0x63D0 + [char]0x4FEE + [char]0x6539 + [char]0x注 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x3002
+        # Chinese strings are built entirely from verified Unicode code points.
+        'Title'         = "AMD ULPS " + [char]0x7981 + [char]0x7528 + [char]0x5DE5 + [char]0x5177                                    # "AMD ULPS Disable Tool"
+        'Subtitle'      = [char]0x7BA1 + [char]0x7406 + " AMD " + [char]0x663E + [char]0x5361 + [char]0x7684 + " Ultra Low Power State" # "Manage the Ultra Low Power State of AMD graphics"
+        'SysStatus'     = [char]0x7CFB + [char]0x7EDF + [char]0x72B6 + [char]0x6001                                                   # "System Status"
+        'NoGpu'         = [char]0x672A + [char]0x627E + [char]0x5230 + " AMD " + [char]0x663E + [char]0x5361                          # "No AMD GPU Found"
+        'NoGpuDetail'   = [char]0x5728 + [char]0x6B64 + [char]0x8BA1 + [char]0x7B97 + [char]0x673A + [char]0x4E0A + [char]0x672A + [char]0x68C0 + [char]0x6D4B + [char]0x5230 + " AMD ULPS " + [char]0x6CE8 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x3002 # "No AMD ULPS registry key detected on this computer."
+        'Disabled'      = "ULPS " + [char]0x5DF2 + [char]0x7981 + [char]0x7528                                                        # "ULPS is Disabled"
+        'DisabledDetail'= "AMD Ultra Low Power State " + [char]0x5728 + [char]0x60A8 + [char]0x7684 + [char]0x7CFB + [char]0x7EDF + [char]0x4E2D + [char]0x5DF2 + [char]0x5904 + [char]0x4E8E + [char]0x975E + [char]0x6D3B + [char]0x52A8 + [char]0x72B6 + [char]0x6001 + [char]0x3002 # "...is already inactive on your system."
+        'Active'        = "ULPS " + [char]0x5F53 + [char]0x524D + [char]0x5904 + [char]0x4E8E + [char]0x542F + [char]0x7528 + [char]0x72B6 + [char]0x6001 # "ULPS is Active"
+        'ActiveDetail'  = [char]0x627E + [char]0x5230 + " {0} " + [char]0x4E2A + [char]0x6D3B + [char]0x52A8 + [char]0x6CE8 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x3002 + [char]0x7981 + [char]0x7528 + [char]0x5B83 + [char]0x53EF + [char]0x4EE5 + [char]0x63D0 + [char]0x9AD8 + [char]0x7CFB + [char]0x7EDF + [char]0x7A33 + [char]0x5B9A + [char]0x6027 + [char]0x3002 # "Found {0} active registry entries. Disabling can improve stability."
+        'BtnDisable'    = [char]0x7981 + [char]0x7528 + " ULPS"                                                                        # "Disable ULPS"
+        'BtnClose'      = [char]0x5173 + [char]0x95ED                                                                                  # "Close"
+        'Success'       = [char]0x5DF2 + [char]0x6210 + [char]0x529F + [char]0x7981 + [char]0x7528 + " ULPS!"                          # "Successfully Disabled ULPS!"
+        'SuccessDetail' = [char]0x6CE8 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x5DF2 + [char]0x66F4 + [char]0x65B0 + [char]0x3002 + [char]0x60A8 + [char]0x60F3 + [char]0x73B0 + [char]0x5728 + [char]0x91CD + [char]0x542F + [char]0x5417 + "?" # "Registry updated. Restart now?"
+        'BtnRestart'    = [char]0x91CD + [char]0x542F + " PC"                                                                          # "Restart PC"
+        'Error'         = [char]0x7981 + [char]0x7528 + [char]0x5931 + [char]0x8D25                                                    # "Failed to Disable"
+        'ErrorDetail'   = [char]0x65E0 + [char]0x6CD5 + [char]0x4FEE + [char]0x6539 + [char]0x6CE8 + [char]0x518C + [char]0x8868 + [char]0x9879 + [char]0x3002 # "Could not modify registry keys."
     }
 }
+
+# ==========================================
+# 2b. LANGUAGE SELECTOR DISPLAY NAMES
+#     (built via [char] codes so the combo box never
+#     depends on the source file's byte encoding)
+# ==========================================
+$script:LangNameEN = "English"
+$script:LangNamePT = "Portugu" + [char]0x00EA + "s"
+$script:LangNameES = "Espa" + [char]0x00F1 + "ol"
+$script:LangNameZH = [char]0x4E2D + [char]0x6587
 
 # ==========================================
 # 3. XAML INTERFACE DESIGN
@@ -135,11 +149,33 @@ $script:Messages = @{
             </StackPanel>
 
             <ComboBox Name="CmbLanguage" Grid.Column="1" Width="110" Height="28" VerticalAlignment="Top"
-                      Background="#1E293B" Foreground="#F8FAFC" BorderBrush="#334155" FontSize="12">
-                <ComboBoxItem Content="English" Tag="en-US" IsSelected="True"/>
-                <ComboBoxItem Content="Português" Tag="pt-BR"/>
-                <ComboBoxItem Content="Español" Tag="es-ES"/>
-                <ComboBoxItem Content="中文" Tag="zh-CN"/>
+                      Background="#1E293B" Foreground="#F8FAFC" BorderBrush="#334155" FontSize="12"
+                      SelectedIndex="0">
+                <ComboBox.Resources>
+                    <!-- Explicit contrast colors for the dropdown items: readable text
+                         in normal, highlighted (hover) and selected states, avoiding
+                         the near-invisible default system colors on a dark theme. -->
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Background" Value="#1E293B"/>
+                        <Setter Property="Foreground" Value="#F8FAFC"/>
+                        <Setter Property="Padding" Value="8,4"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter Property="Background" Value="#334155"/>
+                                <Setter Property="Foreground" Value="#38BDF8"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#0284C7"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ComboBox.Resources>
+                <ComboBoxItem Content="$LangNameEN" Tag="en-US" IsSelected="True"/>
+                <ComboBoxItem Content="$LangNamePT" Tag="pt-BR"/>
+                <ComboBoxItem Content="$LangNameES" Tag="es-ES"/>
+                <ComboBoxItem Content="$LangNameZH" Tag="zh-CN"/>
             </ComboBox>
         </Grid>
 
@@ -161,6 +197,20 @@ $script:Messages = @{
                         <Setter Property="CornerRadius" Value="8"/>
                     </Style>
                 </Button.Resources>
+                <Button.Style>
+                    <!-- Overrides WPF's default washed-out disabled-button text color,
+                         which is nearly unreadable on the blue background. -->
+                    <Style TargetType="Button">
+                        <Setter Property="Opacity" Value="1"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#1E293B"/>
+                                <Setter Property="Foreground" Value="#94A3B8"/>
+                                <Setter Property="BorderBrush" Value="#334155"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
             </Button>
             
             <Button Name="BtnClose" Content="Close" Width="90" Height="38"
@@ -190,6 +240,9 @@ $TxtDetail    = $Window.FindName("TxtDetail")
 $BtnAction    = $Window.FindName("BtnAction")
 $BtnClose     = $Window.FindName("BtnClose")
 $CmbLanguage  = $Window.FindName("CmbLanguage")
+
+# Ensure English is selected by default, regardless of XAML rendering order
+$CmbLanguage.SelectedIndex = 0
 
 $script:isFinished = $false
 
