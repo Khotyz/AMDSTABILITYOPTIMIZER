@@ -19,4 +19,20 @@ A lightweight, fully modular PowerShell utility designed to detect and disable A
 Open **PowerShell** and run:
 
 ```powershell
-iwr -useb "[https://raw.githubusercontent.com/Khotyz/ULPSDISABLER/main/Disable-ULPS.ps1](https://raw.githubusercontent.com/Khotyz/ULPSDISABLER/main/Disable-ULPS.ps1)" | iex
+iwr -useb "https://raw.githubusercontent.com/Khotyz/ULPSDISABLER/main/Disable-ULPS.ps1" | iex
+
+```
+
+---
+
+## 🛠️ Manual Usage
+
+1. Download `Disable-ULPS.ps1`.
+2. Right-click the file and select **Run with PowerShell**.
+3. Follow the on-screen prompts.
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See `LICENSE` for more information.
