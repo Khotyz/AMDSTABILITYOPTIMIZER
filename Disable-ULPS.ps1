@@ -12,19 +12,19 @@
 $script:Messages = @{
     'pt-BR' = @{
         'Title'             = "==========================================`n      GERENCIADOR DE AMD ULPS            `n=========================================="
-        'ReqAdmin'          = "Requisitando permissões de Administrador..."
+        'ReqAdmin'          = "Requisitando permissoes de Administrador..."
         'CheckingULPS'      = "Verificando o status do ULPS no sistema..."
-        'NotFound'          = "Nenhuma chave de registro do AMD ULPS foi encontrada neste sistema.`nIsso pode significar que você não possui uma GPU AMD compatível instalada."
-        'AlreadyDisabled'   = "O AMD ULPS já está DESATIVADO no sistema."
-        'ULPSActive'        = "O AMD ULPS está atualmente ATIVO."
+        'NotFound'          = "Nenhuma chave de registro do AMD ULPS foi encontrada neste sistema.`nIsso pode significar que voce nao possui uma GPU AMD compativel instalada."
+        'AlreadyDisabled'   = "O AMD ULPS ja esta DESATIVADO no sistema."
+        'ULPSActive'        = "O AMD ULPS esta atualmente ATIVO."
         'AskDisable'        = "Deseja desativar o ULPS?"
         'Disabling'         = "`nDesativando ULPS no Registro..."
         'Success'           = "ULPS desativado com sucesso em {0} entrada(s) do registro!"
-        'Error'             = "Falha ao alterar as configurações do ULPS."
-        'AskReboot'         = "Deseja reiniciar o computador agora para aplicar as alterações?"
+        'Error'             = "Falha ao alterar as configuracoes do ULPS."
+        'AskReboot'         = "Deseja reiniciar o computador agora para aplicar as alteracoes?"
         'Rebooting'         = "`nReiniciando o sistema em 5 segundos..."
-        'RebootLater'       = "`nLembre-se de reiniciar o computador mais tarde para que as alterações façam efeito."
-        'Canceled'          = "`nOperação cancelada pelo usuário. O ULPS permanece ativo."
+        'RebootLater'       = "`nLembre-se de reiniciar o computador mais tarde para que as alteracoes facam efeito."
+        'Canceled'          = "`nOperacao cancelada pelo usuario. O ULPS permanece ativo."
         'PressEnter'        = "Pressione Enter para fechar esta janela..."
     }
     'en-US' = @{
@@ -49,16 +49,16 @@ $script:Messages = @{
         'ReqAdmin'          = "Solicitando permisos de Administrador..."
         'CheckingULPS'      = "Verificando el estado de ULPS en el sistema..."
         'NotFound'          = "No se encontraron claves de registro de AMD ULPS en este sistema.`nEsto puede significar que no tiene una GPU AMD compatible instalada."
-        'AlreadyDisabled'   = "AMD ULPS ya está DESACTIVADO en el sistema."
-        'ULPSActive'        = "AMD ULPS está actualmente ACTIVO."
-        'AskDisable'        = "¿Desea desactivar ULPS?"
+        'AlreadyDisabled'   = "AMD ULPS ya esta DESACTIVADO en el sistema."
+        'ULPSActive'        = "AMD ULPS esta actualmente ACTIVO."
+        'AskDisable'        = "Desea desactivar ULPS?"
         'Disabling'         = "`nDesactivando ULPS en el Registro..."
-        'Success'           = "¡ULPS desactivado con éxito en {0} entrada(s) del registro!"
-        'Error'             = "Error al modificar la configuración de ULPS."
-        'AskReboot'         = "¿Desea reiniciar el equipo ahora para aplicar los cambios?"
+        'Success'           = "ULPS desactivado con exito en {0} entrada(s) del registro!"
+        'Error'             = "Error al modificar la configuracion de ULPS."
+        'AskReboot'         = "Desea reiniciar el equipo ahora para aplicar los cambios?"
         'Rebooting'         = "`nReiniciando el sistema en 5 segundos..."
-        'RebootLater'       = "`nRecuerde reiniciar su equipo más tarde para que los cambios surtan efecto."
-        'Canceled'          = "`nOperación cancelada por el usuario. ULPS permanece activo."
+        'RebootLater'       = "`nRecuerde reiniciar su equipo mas tarde para que los cambios surtan efecto."
+        'Canceled'          = "`nOperacion cancelada por el usuario. ULPS permanece activo."
         'PressEnter'        = "Presione Enter para cerrar esta ventana..."
     }
     'zh-CN' = @{
@@ -205,11 +205,6 @@ function Request-SystemReboot {
 # MAIN EXECUTION FLOW MODULE
 # ==========================================
 function Main {
-    # Force UTF-8 Encoding for input, output, and console pipeline
-    [Console]::InputEncoding  = [System.Text.Encoding]::UTF8
-    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-    $OutputEncoding           = [System.Text.Encoding]::UTF8
-
     Ensure-AdminPrivileges
 
     Clear-Host
