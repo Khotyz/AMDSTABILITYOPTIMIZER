@@ -20,9 +20,17 @@ $isAdministrator = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltIn
 
 if (-not $isAdministrator) {
     if ($PSCommandPath) {
+        # Local file execution: relaunch the same file elevated
         Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`"" -Verb RunAs
     } else {
-        Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command `"[Console]::OutputEncoding=[System.Text.Encoding]::UTF8`"" -Verb RunAs
+        # Online execution (iwr | iex): there is no local file to relaunch, so
+        # the elevated process must re-download and re-run the full script from
+        # its source URL. Re-running just "[Console]::OutputEncoding=..." here
+        # silently discarded the entire tool instead of launching it.
+        $scriptUrl = "https://raw.githubusercontent.com/Khotyz/AMDSTABILITYOPTIMIZER/main/AMD-Stability-Optimizer.ps1"
+        $elevatedCommand = "iwr -useb '$scriptUrl' | iex"
+        $encodedCommand = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($elevatedCommand))
+        Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand $encodedCommand" -Verb RunAs
     }
     exit
 }
